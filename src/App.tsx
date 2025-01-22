@@ -6,6 +6,8 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import DashboardLayout from "@/components/DashboardLayout";
+import Todos from "@/pages/Todos";
+import Users from "@/pages/Users";
 
 const App = () => {
   return (
@@ -24,6 +26,8 @@ const App = () => {
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="todos" element={<Todos />} />
+            <Route path="users" element={<Users />} />
           </Route>
         </Routes>
         <Toaster />
