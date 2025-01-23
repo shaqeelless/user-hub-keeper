@@ -103,6 +103,7 @@ export type Database = {
           completed: boolean | null
           created_at: string | null
           id: string
+          reminder_date: string | null
           title: string
           user_id: string | null
         }
@@ -110,6 +111,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string | null
           id?: string
+          reminder_date?: string | null
           title: string
           user_id?: string | null
         }
@@ -117,6 +119,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string | null
           id?: string
+          reminder_date?: string | null
           title?: string
           user_id?: string | null
         }

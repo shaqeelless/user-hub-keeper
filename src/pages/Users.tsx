@@ -2,14 +2,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { format } from "date-fns";
 
 interface User {
@@ -57,33 +49,38 @@ const Users = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Management</CardTitle>
+        <CardTitle>Users</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Last Sign In</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  {format(new Date(user.created_at), "PPP")}
-                </TableCell>
-                <TableCell>
-                  {user.last_sign_in_at
-                    ? format(new Date(user.last_sign_in_at), "PPP")
-                    : "Never"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="grid gap-4">
+          {users.map((user) => (
+            <div
+              key={user.id}
+              className="p-4 border rounded-lg space-y-2"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium">{user.email}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    ID: {user.id}
+                  </p>
+                </div>
+                <div className="text-sm text-right">
+                  <p>
+                    Created:{" "}
+                    {format(new Date(user.created_at), "PPP")}
+                  </p>
+                  {user.last_sign_in_at && (
+                    <p>
+                      Last sign in:{" "}
+                      {format(new Date(user.last_sign_in_at), "PPP")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
