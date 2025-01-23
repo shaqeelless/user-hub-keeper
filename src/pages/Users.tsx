@@ -16,7 +16,7 @@ interface User {
   id: string;
   email: string;
   created_at: string;
-  last_sign_in_at: string;
+  last_sign_in_at: string | null;
 }
 
 const Users = () => {
@@ -30,11 +30,20 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       console.log("Fetching users");
-      const { data: { users }, error } = await supabase.auth.admin.listUsers();
+      const { data: { users: fetchedUsers }, error } = await supabase.auth.admin.listUsers();
 
       if (error) throw error;
-      console.log("Fetched users:", users);
-      setUsers(users);
+      
+      // Transform the data to match our User interface
+      const transformedUsers: User[] = fetchedUsers.map(user => ({
+        id: user.id,
+        email: user.email || 'No email',
+        created_at: user.created_at,
+        last_sign_in_at: user.last_sign_in_at
+      }));
+
+      console.log("Fetched users:", transformedUsers);
+      setUsers(transformedUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
