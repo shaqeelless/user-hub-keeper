@@ -8,6 +8,8 @@ import Dashboard from "@/pages/Dashboard";
 import DashboardLayout from "@/components/DashboardLayout";
 import Todos from "@/pages/Todos";
 import Users from "@/pages/Users";
+import Movies from "@/pages/Movies";
+import MovieDetails from "@/components/MovieDetails";
 
 const App = () => {
   return (
@@ -28,6 +30,8 @@ const App = () => {
             <Route index element={<Dashboard />} />
             <Route path="todos" element={<Todos />} />
             <Route path="users" element={<Users />} />
+            <Route path="movies" element={<Movies />} />
+            <Route path="movies/:id" element={<MovieDetails />} />
           </Route>
         </Routes>
         <Toaster />

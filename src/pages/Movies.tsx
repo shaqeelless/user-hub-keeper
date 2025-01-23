@@ -1,31 +1,17 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
+import { Movie } from "@/types/movie";
+import { getPopularMovies, searchMovies, getImageUrl } from "@/services/tmdb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import { Film, PlusSquare, Trash2 } from "lucide-react";
-
-interface Movie {
-  id: string;
-  title: string;
-  description: string | null;
-  genre: string | null;
-  rating: number | null;
-  release_year: number | null;
-}
+import { Button } from "@/components/ui/button";
+import { Search, Star } from "lucide-react";
 
 const Movies = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [genre, setGenre] = useState("");
-  const [rating, setRating] = useState("");
-  const [releaseYear, setReleaseYear] = useState("");
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     fetchMovies();
@@ -33,157 +19,89 @@ const Movies = () => {
 
   const fetchMovies = async () => {
     try {
-      const { data, error } = await supabase
-        .from("movies")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setMovies(data || []);
+      setLoading(true);
+      const data = await getPopularMovies();
+      setMovies(data);
     } catch (error) {
       console.error("Error fetching movies:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch movies",
-        variant: "destructive",
-      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const addMovie = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!searchQuery.trim()) {
+      fetchMovies();
+      return;
+    }
 
     try {
-      const { error } = await supabase.from("movies").insert([
-        {
-          title,
-          description,
-          genre,
-          rating: rating ? parseFloat(rating) : null,
-          release_year: releaseYear ? parseInt(releaseYear) : null,
-          user_id: user?.id,
-        },
-      ]);
-
-      if (error) throw error;
-
-      setTitle("");
-      setDescription("");
-      setGenre("");
-      setRating("");
-      setReleaseYear("");
-      fetchMovies();
-      toast({
-        title: "Success",
-        description: "Movie added successfully",
-      });
+      setSearching(true);
+      const results = await searchMovies(searchQuery);
+      setMovies(results);
     } catch (error) {
-      console.error("Error adding movie:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add movie",
-        variant: "destructive",
-      });
+      console.error("Error searching movies:", error);
+    } finally {
+      setSearching(false);
     }
   };
 
-  const deleteMovie = async (id: string) => {
-    try {
-      const { error } = await supabase.from("movies").delete().eq("id", id);
-
-      if (error) throw error;
-      fetchMovies();
-      toast({
-        title: "Success",
-        description: "Movie deleted successfully",
-      });
-    } catch (error) {
-      console.error("Error deleting movie:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete movie",
-        variant: "destructive",
-      });
-    }
-  };
+  if (loading) {
+    return <div className="flex justify-center p-8">Loading...</div>;
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Movie Catalog</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={addMovie} className="space-y-4 mb-6">
+        <form onSubmit={handleSearch} className="flex gap-2 mt-4">
           <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Movie title"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search movies..."
+            className="max-w-sm"
           />
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Movie description"
-          />
-          <Input
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-            placeholder="Genre"
-          />
-          <Input
-            type="number"
-            min="0"
-            max="10"
-            step="0.1"
-            value={rating}
-            onChange={(e) => setRating(e.target.value)}
-            placeholder="Rating (0-10)"
-          />
-          <Input
-            type="number"
-            value={releaseYear}
-            onChange={(e) => setReleaseYear(e.target.value)}
-            placeholder="Release year"
-          />
-          <Button type="submit">
-            <PlusSquare className="mr-2" />
-            Add Movie
+          <Button type="submit" disabled={searching}>
+            <Search className="h-4 w-4 mr-2" />
+            Search
           </Button>
         </form>
-        <div className="grid gap-4">
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {movies.map((movie) => (
-            <div
+            <Link
               key={movie.id}
-              className="flex items-center justify-between p-4 border rounded"
+              to={`/dashboard/movies/${movie.id}`}
+              className="group"
             >
-              <div>
-                <h3 className="font-semibold">{movie.title}</h3>
-                {movie.description && (
-                  <p className="text-sm text-gray-500">{movie.description}</p>
+              <div className="border rounded-lg overflow-hidden transition-all hover:shadow-lg">
+                {movie.poster_path ? (
+                  <img
+                    src={getImageUrl(movie.poster_path)}
+                    alt={movie.title}
+                    className="w-full aspect-[2/3] object-cover"
+                  />
+                ) : (
+                  <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
+                    No image
+                  </div>
                 )}
-                <div className="text-sm text-gray-500">
-                  {movie.genre && <span>Genre: {movie.genre}</span>}
-                  {movie.rating && (
-                    <span className="ml-2">Rating: {movie.rating}/10</span>
-                  )}
-                  {movie.release_year && (
-                    <span className="ml-2">Year: {movie.release_year}</span>
-                  )}
+                <div className="p-4">
+                  <h3 className="font-semibold group-hover:text-primary transition-colors">
+                    {movie.title}
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                    <span>{new Date(movie.release_date).getFullYear()}</span>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                      {movie.vote_average.toFixed(1)}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="icon">
-                  <Film className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => deleteMovie(movie.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       </CardContent>
