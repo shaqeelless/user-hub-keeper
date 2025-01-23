@@ -10,6 +10,9 @@ import Todos from "@/pages/Todos";
 import Users from "@/pages/Users";
 import Movies from "@/pages/Movies";
 import MovieDetails from "@/components/MovieDetails";
+import Quizzes from "@/pages/Quizzes";
+import QuizGame from "@/components/QuizGame";
+import QuizSetup from "@/components/QuizSetup";
 
 const App = () => {
   return (
@@ -32,6 +35,9 @@ const App = () => {
             <Route path="users" element={<Users />} />
             <Route path="movies" element={<Movies />} />
             <Route path="movies/:id" element={<MovieDetails />} />
+            <Route path="quizzes" element={<Quizzes />} />
+            <Route path="quizzes/:id" element={<QuizGame />} />
+            <Route path="quizzes/:id/setup" element={<QuizSetup />} />
           </Route>
         </Routes>
         <Toaster />

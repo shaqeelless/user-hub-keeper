@@ -7,12 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { BookOpen, PlusSquare, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Quiz {
   id: string;
   title: string;
   description: string | null;
   created_at: string;
+  current_score: number;
+  max_score: number;
 }
 
 const Quizzes = () => {
@@ -21,6 +24,7 @@ const Quizzes = () => {
   const [description, setDescription] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchQuizzes();
@@ -50,19 +54,29 @@ const Quizzes = () => {
     if (!title.trim()) return;
 
     try {
-      const { error } = await supabase.from("quizzes").insert([
-        {
-          title,
-          description,
-          user_id: user?.id,
-        },
-      ]);
+      const { data, error } = await supabase
+        .from("quizzes")
+        .insert([
+          {
+            title,
+            description,
+            user_id: user?.id,
+          },
+        ])
+        .select()
+        .single();
 
       if (error) throw error;
 
       setTitle("");
       setDescription("");
       fetchQuizzes();
+      
+      // Navigate to quiz setup after creation
+      if (data) {
+        navigate(`/dashboard/quizzes/${data.id}/setup`);
+      }
+
       toast({
         title: "Success",
         description: "Quiz created successfully",
@@ -95,6 +109,10 @@ const Quizzes = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const startQuiz = (quizId: string) => {
+    navigate(`/dashboard/quizzes/${quizId}`);
   };
 
   return (
@@ -130,9 +148,14 @@ const Quizzes = () => {
                 {quiz.description && (
                   <p className="text-sm text-gray-500">{quiz.description}</p>
                 )}
+                {quiz.max_score > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Score: {quiz.current_score}/{quiz.max_score}
+                  </p>
+                )}
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={() => startQuiz(quiz.id)}>
                   <BookOpen className="h-4 w-4" />
                 </Button>
                 <Button

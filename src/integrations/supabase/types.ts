@@ -71,25 +71,37 @@ export type Database = {
       }
       quiz_questions: {
         Row: {
+          category: string | null
           correct_answer: string
+          difficulty: string | null
           id: string
           options: Json
           question: string
           quiz_id: string | null
+          timer_seconds: number | null
+          type: string | null
         }
         Insert: {
+          category?: string | null
           correct_answer: string
+          difficulty?: string | null
           id?: string
           options: Json
           question: string
           quiz_id?: string | null
+          timer_seconds?: number | null
+          type?: string | null
         }
         Update: {
+          category?: string | null
           correct_answer?: string
+          difficulty?: string | null
           id?: string
           options?: Json
           question?: string
           quiz_id?: string | null
+          timer_seconds?: number | null
+          type?: string | null
         }
         Relationships: [
           {
@@ -104,22 +116,28 @@ export type Database = {
       quizzes: {
         Row: {
           created_at: string | null
+          current_score: number | null
           description: string | null
           id: string
+          max_score: number | null
           title: string
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
+          current_score?: number | null
           description?: string | null
           id?: string
+          max_score?: number | null
           title: string
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
+          current_score?: number | null
           description?: string | null
           id?: string
+          max_score?: number | null
           title?: string
           user_id?: string | null
         }
