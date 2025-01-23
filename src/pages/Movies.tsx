@@ -6,12 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Star } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const Movies = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchMovies();
@@ -20,10 +23,17 @@ const Movies = () => {
   const fetchMovies = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await getPopularMovies();
       setMovies(data);
     } catch (error) {
       console.error("Error fetching movies:", error);
+      setError("Failed to fetch movies. Please try again later.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch movies. Please try again later.",
+      });
     } finally {
       setLoading(false);
     }
@@ -38,17 +48,49 @@ const Movies = () => {
 
     try {
       setSearching(true);
+      setError(null);
       const results = await searchMovies(searchQuery);
       setMovies(results);
     } catch (error) {
       console.error("Error searching movies:", error);
+      setError("Failed to search movies. Please try again later.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to search movies. Please try again later.",
+      });
     } finally {
       setSearching(false);
     }
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading...</div>;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Movie Catalog</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center p-8">Loading movies...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Movie Catalog</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center gap-4 p-8">
+            <p className="text-destructive">{error}</p>
+            <Button onClick={fetchMovies}>Try Again</Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -64,7 +106,7 @@ const Movies = () => {
           />
           <Button type="submit" disabled={searching}>
             <Search className="h-4 w-4 mr-2" />
-            Search
+            {searching ? "Searching..." : "Search"}
           </Button>
         </form>
       </CardHeader>
