@@ -13,20 +13,12 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { User, UserPlus, UserMinus } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 
-interface User {
-  id: string;
-  email: string;
-  created_at: string;
-  last_sign_in_at: string | null;
-  user_metadata: {
-    name?: string;
-    avatar_url?: string;
-  };
-}
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 const Users = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,21 +27,16 @@ const Users = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log("Fetching users");
-      const { data: { users: fetchedUsers }, error } = await supabase.auth.admin.listUsers();
+      console.log("Fetching users from profiles table");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      const transformedUsers: User[] = fetchedUsers.map(user => ({
-        id: user.id,
-        email: user.email || 'No email',
-        created_at: user.created_at,
-        last_sign_in_at: user.last_sign_in_at,
-        user_metadata: user.user_metadata
-      }));
-
-      console.log("Fetched users:", transformedUsers);
-      setUsers(transformedUsers);
+      console.log("Fetched profiles:", data);
+      setUsers(data || []);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
@@ -93,15 +80,23 @@ const Users = () => {
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-4 w-4 text-primary" />
-                      </div>
-                      <span>{user.user_metadata.name || 'Anonymous'}</span>
+                      {user.avatar_url ? (
+                        <img 
+                          src={user.avatar_url} 
+                          alt={user.name || 'User avatar'} 
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <User className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
+                      <span>{user.name || 'Anonymous'}</span>
                     </div>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    {format(new Date(user.created_at), "PPP")}
+                    {user.created_at ? format(new Date(user.created_at), "PPP") : "N/A"}
                   </TableCell>
                   <TableCell>
                     {user.last_sign_in_at

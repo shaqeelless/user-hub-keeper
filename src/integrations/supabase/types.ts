@@ -42,6 +42,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          last_sign_in_at: string | null
+          name: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id: string
+          last_sign_in_at?: string | null
+          name?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_sign_in_at?: string | null
+          name?: string | null
+        }
+        Relationships: []
+      }
       quiz_questions: {
         Row: {
           correct_answer: string
